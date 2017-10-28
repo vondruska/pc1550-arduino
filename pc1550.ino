@@ -1,5 +1,5 @@
-#include <XBee.h>
-#include <PC1550.h>
+#include "XBee.h"
+#include "PC1550.h"
 
 // milliseconds to wait for a status response
 #define STATUS_RESPONSE_TIMEOUT 500
