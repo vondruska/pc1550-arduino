@@ -1,5 +1,6 @@
 #include "XBee.h"
 #include "PC1550.h"
+#include "SimpleTimer.h"
 
 // milliseconds to wait for a status response
 #define STATUS_RESPONSE_TIMEOUT 500
@@ -24,6 +25,8 @@ enum arduino_status {
 PC1550 alarm = PC1550();
 
 XBee xbee = XBee();
+SimpleTimer timer = SimpleTimer();
+
 XBeeResponse response = XBeeResponse();
 Rx16Response rx = Rx16Response();
 TxStatusResponse txStatus = TxStatusResponse();
@@ -32,14 +35,16 @@ uint8_t payload[] = { '0','0','0','0','0','0','0', '0', '1'};
 int16_t cordXbeeAddress = 0x2222;
 Tx16Request tx = Tx16Request(cordXbeeAddress, payload, sizeof(payload));
 
-unsigned long previousMillis = 0; // last time update
-long interval = 2000; // interval at which to do something (milliseconds)
 bool startedUp = false;
+
+int timerId;
 
 void setup() {
   
    Serial.begin(57600);
    xbee.begin(Serial);
+
+   timerId = timer.setInterval(5000, sendMessage);
 
 }
 
@@ -50,14 +55,16 @@ void loop() {
     startedUp = true;
   }
   
-  unsigned long currentMillis = millis();
   //process a full transmisison cycle with the PC1550 controller  
   alarm.processTransmissionCycle();
 
   //print the state of the keypad and and PGM output to the Serial console
   if (alarm.keypadStateChanged()) {
      setState();
+     timer.restartTimer(timerId);
   }
+
+  timer.run();
 
 }
 
